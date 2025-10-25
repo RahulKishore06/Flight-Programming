@@ -1,5 +1,5 @@
 from rocketpy import Rocket, Motor, TrapezoidalFins
-def makeDefaultRocket(motor:Motor , fins: list):
+def makeDefaultRocket(motor:Motor , fins: list, fin_positions: list, sensors: list):
     '''Set up the rocket to launch in the sim'''
     #REMIND ME TO FILL IN ACTUAl VALUES
     # default values
@@ -14,10 +14,15 @@ def makeDefaultRocket(motor:Motor , fins: list):
     # add nose
     rocket.add_nose(length=0,kind="",position=0,bluffness=0.0,power=0.0)
 
+
     # add motor
     rocket.add_motor(motor, 0)
-    for fin in fins():
-        rocket.add_trapezoidal_fins(fin)
+    
+    rocket.add_surfaces(fins,fin_positions)
+    
+    # add sensors
+    for sensor in sensors:
+        rocket.add_sensor()
     
     
 
