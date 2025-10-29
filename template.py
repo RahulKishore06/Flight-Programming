@@ -3,12 +3,17 @@ class SimulatedRocket(ABC):
     #Use this Interface to guide what the SimulatedRocket software needs to do
     @abstractmethod
     def getAccelerometerValue() -> float:
-        '''Outputs a float representing the the value of the rocket's acceleration at that given time slice'''
+        '''Outputs a float representing the value of the rocket's acceleration at that given time slice'''
         pass
     @abstractmethod
     def getGyroscopeValue() -> list:
         '''Outputs an array of 3 floating point numbers that represent the pitch, yaw and roll angular velocities measured
-        by the gyroscope on the rocket'''
+        by the gyroscope on the rocket
+        Outputs Pitch, Yaw, then Roll angular velocity'''
+        pass
+    @abstractmethod 
+    def getAltitude() -> float:
+        '''Outputs a float representing the value of the rocket's altitude at that given time slice'''
         pass
     @abstractmethod
     def getEncoderValues() -> list:
