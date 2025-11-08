@@ -38,19 +38,77 @@ def main():
         angular_velocities=SimulatedRocket.getEncoderValues()
         altitude=SimulatedRocket.getAltitude()
 
+        #Use kalman filter to get true angular velocity
+
         #update current pitch and yaw
         current_pitch+=angular_velocities[0]*dt
         current_yaw+=angular_velocities[1]*dt
 
         #check if above min alt
         if (altitude>min_alt):
-            # if pitch or yaw ever hit 0, the integral term should be reset. This is to ensure that 
-            # the integral term doesn't become too large and create an erroneously large control output
-            if (math.abs(current_pitch)<max_yaw_error):
-                pitch_integral=0
-            if (math.abs(current_yaw)<max_yaw_error):
-                yaw_integral=0
-            
+            pass
+class KalmanFilter:
+    '''
+    Make a copy of the Kalman Filter class for each value that needs to be filtered.
+    So there is 1 KalmanFilter for each of Roll, Yaw, Pitch and Altitude.
+    Attributes: 
+    X: the estimate of the thing being measured
+    P: The error covariance
+    Q: The process noise
+    R: The measurement noise
+    '''
+    def __init__(self, process_noise, measurement_noise, initial_estimate, initial_covariance):
+        '''
+        The process_noise and measurement_noise are constant parameters that should never really be changed
+        These are the parameters required
+        initial_estimate: The most likely start value for the state being measured. For yaw, it should (hopefully)
+        start as 0
+        initial_covariance: The error covariance
+        process_noise: The process noise covariance
+        measurement_noise: The measurement noise covariance
+        '''
+        self.x = initial_estimate      
+        self.P = initial_covariance    
+        
+        # NEVER CHANGE THIS AFTER IT IS DEFINED!
+        self.Q = process_noise         
+        self.R = measurement_noise     
+
+    def predict(self):
+        """Prediction step, apparently its called each time before update is called"""
+        # Error covariance increases
+        self.P = self.P + self.Q  
+    
+    def update(self, measurement):
+        """
+        Update step
+        Receives a noisy measurement
+        Returns the (hopefully) less noisy measurement
+        """
+        #Predict
+        self.predict()
+        
+        # Calculate Kalman gain
+        K = self.P / (self.P + self.R)
+        
+        # Update estimate
+        self.x = self.x + K * (measurement - self.x)
+        
+        # Update covariance
+        self.P = (1 - K) * self.P
+        
+        return self.x
+    
+    def get_state(self):
+        """Get current filtered value. No updating is being done in this one"""
+        return self.x
+    
+    def get_covariance(self):
+        """Get current uncertainty (for when things inevitably go wrong)"""
+        return self.P
+
+
+    
 
 
 
