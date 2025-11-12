@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import savgol_filter
 
-#dfhtmfuy
 from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Motor, Environment
 
 def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
@@ -64,10 +63,9 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
         airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
     )
     
-    if (len(sensors)!=0):
-        # add sensors
-        for sensor in sensors:
-            rocket.add_sensor(sensor)
+    
+    for sensor in sensors:
+        rocket.add_sensor(sensor)
     return rocket
 
 
