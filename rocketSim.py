@@ -68,8 +68,6 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
         rocket.add_sensor(sensor)
     return rocket
 
-
-
 def makeMotor(option):
     '''
     Set up the rocket motor to be simulated
@@ -104,6 +102,28 @@ def makeMotor(option):
     else:
         raise ValueError("Motor option not recognised")
 
+def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height):
+    '''
+    Set up the launch conditions for the flight sim
+    date: A tuple (or list) of 4 items in the form (year, month, day, hour)
+    timezone: Timezone name. To see full list, print(pytz.all_timezones)
+    launch_lat: Latitude in degrees of rocket launch location
+    launch_long: Longtitude in degrees of rocket launch location
+    max_expected_height: Altitude in meters to keep weather data
+    '''
+    env = Environment(
+        gravity=9.81, # guess I could make gravity 9.80665 but I'm not sure we need that much accuracy in a demo
+        latitude=launch_lat,
+        longitude=launch_long,
+    )   
+    env.set_date(date, timezone)
+    #Use the open-elevation API to automatically find elevation
+    env.set_elevation("Open-Elevation")
+
+    env.max_expected_height=max_expected_height
+
+    return env
+
 motor = makeMotor("Test")
 
 r1= makeDefaultRocket(motor, 4, [])
@@ -115,18 +135,7 @@ r1= makeDefaultRocket(motor, 4, [])
 # --------------------------------------------------------------
 
 # Environment conditions
-env = Environment(
-    gravity=9.81,
-    latitude=47.213476,
-    longitude=9.003336,
-    date=(2020, 2, 22, 13),
-    elevation=407,
-)
-
-env.max_expected_height = 1000
-    
-env.set_date(date=(2025, 10, 23, 17), timezone="America/Denver")
-
+env= makeEnvironment((2025, 10, 23, 17), "America/Denver", 47.213476, 9.003336, 1000)
     
 test_flight = Flight(
     rocket=r1,
@@ -139,4 +148,4 @@ test_flight = Flight(
     rail_length=5.2,
 )    
 
-print(test_flight.plots.trajectory_3d())
+test_flight.plots.trajectory_3d()
