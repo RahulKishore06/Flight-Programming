@@ -27,7 +27,19 @@ def main():
     #Yaw and pitch start at zero
     current_yaw=0
     current_pitch=0
+
+    # for derivative term
+    prev_roll_error = 0
+    prev_yaw_error = 0
+    prev_pitch_error = 0
+
     last_time = time.monotonic_ns()  # remember that this is in nanoseconds
+
+    #kalman filters
+    #REMIND ME TO FILL WITH ACTUAL VALUES
+    roll_filter= KalmanFilter(0,0,0,0)
+    yaw_filter= KalmanFilter(0,0,0,0)
+    pitch_filter= KalmanFilter(0,0,0,0)
     while (True):
         #the change in time between the last cycle and the current cycle
         current_time = time.monotonic_ns()
@@ -35,18 +47,45 @@ def main():
         last_time = current_time
 
         #change for the actual function later
-        angular_velocities=SimulatedRocket.getEncoderValues()
+        angular_velocities=SimulatedRocket.getGyroscopeValue()
         altitude=SimulatedRocket.getAltitude()
 
-        #Use kalman filter to get true angular velocity
+        #Use kalman filter to get true angular velocities
+        filtered_pitch_rate=pitch_filter.update(angular_velocities[0])
+        filtered_yaw_rate=yaw_filter.update(angular_velocities[1])
+        filtered_roll_rate=roll_filter.update(angular_velocities[2])
 
         #update current pitch and yaw
-        current_pitch+=angular_velocities[0]*dt
-        current_yaw+=angular_velocities[1]*dt
+        current_pitch+=filtered_pitch_rate*dt
+        current_yaw+=filtered_yaw_rate*dt
 
         #check if above min alt
         if (altitude>min_alt):
-            pass
+            #I'm aware I don't need these variables, but this is for clarity
+            roll_error=filtered_roll_rate
+            yaw_error=current_yaw
+            pitch_error=current_pitch
+
+            # Derivative terms
+            if dt > 0:  
+                roll_derivative = (roll_error - prev_roll_error) / dt
+                yaw_derivative = (yaw_error - prev_yaw_error) / dt
+                pitch_derivative = (pitch_error - prev_pitch_error) / dt
+            
+            # Calculate PD control outputs
+            roll_output = kP_roll * roll_error + kD_roll * roll_derivative
+            yaw_output = kP_yaw * yaw_error + kD_yaw * yaw_derivative
+            pitch_output = kP_yaw * pitch_error + kD_yaw * pitch_derivative
+            
+            #convert into deflection angles using dynamics equations
+            #TODO!
+            
+            # update prev errors
+            prev_roll_error = roll_error
+            prev_yaw_error = yaw_error
+            prev_pitch_error = pitch_error
+
+
 class KalmanFilter:
     '''
     Make a copy of the Kalman Filter class for each value that needs to be filtered.
@@ -57,7 +96,7 @@ class KalmanFilter:
     Q: The process noise
     R: The measurement noise
     '''
-    def __init__(self, process_noise, measurement_noise, initial_estimate, initial_covariance):
+    def __init__(self, process_noise:float, measurement_noise:float, initial_estimate:float, initial_covariance:float):
         '''
         The process_noise and measurement_noise are constant parameters that should never really be changed
         These are the parameters required
@@ -79,7 +118,7 @@ class KalmanFilter:
         # Error covariance increases
         self.P = self.P + self.Q  
     
-    def update(self, measurement):
+    def update(self, measurement:float):
         """
         Update step
         Receives a noisy measurement
