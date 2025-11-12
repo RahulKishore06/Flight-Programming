@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import savgol_filter
 
-
+#dfhtmfuy
 from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Motor, Environment
 
 # def makeDefaultRocket(motor:Motor , fins: TrapezoidalFins, fin_positions: list = [], sensors: list = []):
