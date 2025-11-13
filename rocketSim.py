@@ -5,6 +5,14 @@ from scipy.signal import savgol_filter
 
 from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Motor, Environment
 
+# =================
+
+# Based on "rocket 11.6.ork" in the AFS Mech Drive folder. 
+
+# =================
+
+
+
 def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     '''
     Set up the rocket to launch in the sim
@@ -14,10 +22,10 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     #REMIND ME TO FILL IN ACTUAl VALUES
     # default values
     rocket = Rocket(
-        radius=0.0655,
-        mass=24.05,
-        inertia=(15.07, 15.07, 0.067),
-        power_off_drag=0.65,
+        radius=0.04013,
+        mass=1.18,
+        inertia=(15.07, 15.07, 0.067), # IDK how to find this without calculating every second it moves
+        power_off_drag=0.65, # Haven't found.
         power_on_drag=0.65,
         center_of_mass_without_motor=0,
         coordinate_system_orientation="tail_to_nose",
@@ -29,15 +37,15 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
 
     # add nose
     rocket.add_nose(
-        length=0.565,
+        length=0.254,
         kind="vonKarman",
-        position=1.477,
+        position=0.523,
     )
 
     # add tail
-    rocket.add_tail(
-        top_radius=0.0655, bottom_radius=0.0535, length=0.068, position=-1.226
-    )
+    # rocket.add_tail(
+    #     top_radius=0.0655, bottom_radius=0.0535, length=0.508, position=-0.112
+    # )
 
     # add motor
     rocket.add_motor(motor, 0)
@@ -55,10 +63,10 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     # add fins
     rocket.add_trapezoidal_fins(
         n=numFins,
-        root_chord=0.20,
-        tip_chord=0.12,
-        span=0.130,
-        position=-0.928,
+        root_chord=0.126,
+        tip_chord=0.0744,
+        span=0.0762,
+        position=-0.366,
         cant_angle=0,
         airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
     )
@@ -81,20 +89,20 @@ def makeMotor(option):
         motor = SolidMotor(
             thrust_source = "AeroTech_H242T.csv",
             reshape_thrust_curve=(5.8, 8800),
-            grain_number=5,
+            grain_number=2,
             grain_separation=0.006,
-            grain_outer_radius=0.0465,
+            grain_outer_radius=0.035,
             grain_initial_inner_radius=0.016,
-            grain_initial_height=0.156,
+            grain_initial_height=0.15,
             grain_density=1748.9,
             nozzle_radius=0.0335,
             throat_radius=0.0114,
             interpolation_method="linear",
             dry_mass=0.00000000001,
-            grains_center_of_mass_position=-0.683,
+            grains_center_of_mass_position=-0.383,
             center_of_dry_mass_position=-0.683,
             dry_inertia=(0.0000000000001, 0.0000000000001, 0.0000000000001),
-            nozzle_position=-1.294,
+            nozzle_position=-.624,
         )
         return motor
     if option=="Cert":
@@ -129,7 +137,7 @@ motor = makeMotor("Test")
 r1= makeDefaultRocket(motor, 4, [])
 
 # r1.info()
-# r1.draw()
+r1.draw()
 
 # --------------------------------------------------------------
 # --------------------------------------------------------------
