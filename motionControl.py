@@ -145,6 +145,20 @@ class KalmanFilter:
         return self.P
 
 
+class PDScript:
+    '''This contains the logic required to run the PDScript'''
+    def __init__(self, simulation: RocketPySimulation):
+        #remember that this is passed by reference
+        self.sim_=simulation
+        pass
+    def get_canard_deflections(self, cur_time: float) -> list:
+        '''
+        Returns 4 canard deflections
+        cur_time: The current time as dictated by the scheduler
+        '''
+        #PD Code here
+        return []
+
     
 
 
