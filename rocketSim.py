@@ -5,6 +5,8 @@ from scipy.signal import savgol_filter
 
 from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Motor, Environment
 
+from template import SimulatedRocket
+
 def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     '''
     Set up the rocket to launch in the sim
@@ -124,28 +126,49 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
 
     return env
 
-motor = makeMotor("Test")
 
-r1= makeDefaultRocket(motor, 4, [])
 
-# r1.info()
-# r1.draw()
+class RocketPySimulation(SimulatedRocket):
+    def __init__(self):
+        '''
+        Sets up the rocketPy Simulation
+        '''
+        motor = makeMotor("Test")
 
-# --------------------------------------------------------------
-# --------------------------------------------------------------
+        r1= makeDefaultRocket(motor, 4, [])
 
-# Environment conditions
-env= makeEnvironment((2025, 10, 23, 17), "America/Denver", 47.213476, 9.003336, 1000)
-    
-test_flight = Flight(
-    rocket=r1,
-    environment=env,
-    inclination=85,
-    heading=105,
-    rtol=1e-6,
-    atol=1e-6,
-    max_time=600,
-    rail_length=5.2,
-)    
+        # r1.info()
+        # r1.draw()
 
-test_flight.plots.trajectory_3d()
+        # --------------------------------------------------------------
+        # --------------------------------------------------------------
+
+        # Environment conditions
+        env= makeEnvironment((2025, 10, 23, 17), "America/Denver", 47.213476, 9.003336, 1000)
+            
+        self.flight_ = Flight(
+            rocket=r1,
+            environment=env,
+            inclination=85,
+            heading=105,
+            rtol=1e-6,
+            atol=1e-6,
+            max_time=600,
+            rail_length=5.2,
+        )  
+        #for checking that everything looks ok
+        self.flight_.plots.trajectory_3d()
+    def getAccelerometerValue(self):
+        pass
+    def getAltitude(self):
+        pass
+    def getEncoderValues(self):
+        pass
+    def getGyroscopeValue(self):
+        pass
+    def setControlOutputs(list):
+        pass
+    def advanceOneTimeSlice(self, time_slice:int):
+        rocket_state=self.flight_.get_solution_at_time(time_slice)
+        
+        return 
