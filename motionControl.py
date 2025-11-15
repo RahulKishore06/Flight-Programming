@@ -1,5 +1,4 @@
 from template import SimulatedRocket
-from rocketSim import RocketPySimulation
 import math
 import time
 def main():
@@ -7,20 +6,36 @@ def main():
     #FILL WITH ACTUAL VALUES
     #General constants
 
+    """
+    Inputs:
 
-    #This is for controlling rate of roll
-    kP_roll= 0
-    kD_roll=0
+    Inertia Tensor: Current mass of rocket (including fuel), rocket radius, rocket length
+    Error: current roll, pitch, yaw
+    Ang. Velocity: current ang. vel of yaw, pitch, roll
+    Fin Deflection (delta): dynamic air pressure (possibly made of other inputs), canard surface area, 
+                            control effectiveness matrix (represents how one fin affects r, p, y)
 
-    #This is for controlling yaw/pitch
-    kP_yaw= 0
-    kD_yaw=0
+    Steps:
+    - Assign rocket with the diagonal moment elements
+    - Calculate the error in roll, pitch, and yaw
+    - Calculate desired angular velocity along each axis (reference doc for detailed explanation)
+    - Calculate error between desired and current ang. velocities
+        - Store in list
+    - Calculate the rate of change in the error in angular velocity
+        - Store in list
+    - Compute desired angular accelerations abt each axis
+        - Multiply the error in ang. vel by the K_p constants and adding eorr in ROC of ang. vel by K_d constants.
+    - Calculate desired moments
+        - Multiply angular accel. vector by inertia tensor, and then subtract angular vel. x I * ang. vel.
+    - desired M = qSE_delta_ to find _delta_
 
+    """
+
+
+    
     #This is the minimum altitude (in meters) before the rocket is allowed to turn on AFS
     min_alt=10 #since this is for a hypothetical L2 launch, the min_alt is probably just a couple meters above
     # the launch rail
-
-    #initialize some values
 
     #this is the maximum error tolerated in pitch and yaw
     max_yaw_error=0.01 
@@ -34,16 +49,19 @@ def main():
     prev_yaw_error = 0
     prev_pitch_error = 0
 
-    last_time = time.monotonic_ns()  # remember that this is in nanoseconds
+    last_time = 0 # Should be kept from the last run
 
     #kalman filters
     #REMIND ME TO FILL WITH ACTUAL VALUES
-    roll_filter= KalmanFilter(0,0,0,0)
-    yaw_filter= KalmanFilter(0,0,0,0)
-    pitch_filter= KalmanFilter(0,0,0,0)
+    # roll_filter= KalmanFilter(0,0,0,0)
+    # yaw_filter= KalmanFilter(0,0,0,0)
+    # pitch_filter= KalmanFilter(0,0,0,0)
+
+
+
     while (True):
         #the change in time between the last cycle and the current cycle
-        current_time = time.monotonic_ns()
+        current_time = 0 # Given by schedular
         dt = (current_time - last_time) / 1e9  # convert to seconds
         last_time = current_time
 
@@ -62,29 +80,8 @@ def main():
 
         #check if above min alt
         if (altitude>min_alt):
-            #I'm aware I don't need these variables, but this is for clarity
-            roll_error=filtered_roll_rate
-            yaw_error=current_yaw
-            pitch_error=current_pitch
-
-            # Derivative terms
-            if dt > 0:  
-                roll_derivative = (roll_error - prev_roll_error) / dt
-                yaw_derivative = (yaw_error - prev_yaw_error) / dt
-                pitch_derivative = (pitch_error - prev_pitch_error) / dt
+            pass
             
-            # Calculate PD control outputs
-            roll_output = kP_roll * roll_error + kD_roll * roll_derivative
-            yaw_output = kP_yaw * yaw_error + kD_yaw * yaw_derivative
-            pitch_output = kP_yaw * pitch_error + kD_yaw * pitch_derivative
-            
-            #convert into deflection angles using dynamics equations
-            #TODO!
-            
-            # update prev errors
-            prev_roll_error = roll_error
-            prev_yaw_error = yaw_error
-            prev_pitch_error = pitch_error
 
 
 class KalmanFilter:
@@ -149,18 +146,6 @@ class KalmanFilter:
 
 
     
-class PDScript:
-    '''This contains the logic required to run the PDScript'''
-    def __init__(self, simulation: RocketPySimulation):
-        #remember that this is passed by reference
-        self.sim_=simulation
-        pass
-    def get_canard_deflections(self, cur_time: float) -> list:
-        '''
-        Returns 4 canard deflections
-        cur_time: The current time as dictated by the scheduler
-        '''
-        #PD Code here
-        return []
+
 
 
