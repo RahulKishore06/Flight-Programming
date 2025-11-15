@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import savgol_filter
+import math
 
 from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Motor, Environment
 
@@ -131,11 +132,12 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
 class RocketPySimulation(SimulatedRocket):
     def __init__(self):
         '''
-        Sets up the rocketPy Simulation
+        Sets up the rocketPy Simulation.
+        Stores the rocket state after it leaves the rail
         '''
         motor = makeMotor("Test")
 
-        r1= makeDefaultRocket(motor, 4, [])
+        self.rocket_= makeDefaultRocket(motor, 4, [])
 
         # r1.info()
         # r1.draw()
@@ -144,11 +146,11 @@ class RocketPySimulation(SimulatedRocket):
         # --------------------------------------------------------------
 
         # Environment conditions
-        env= makeEnvironment((2025, 10, 23, 17), "America/Denver", 47.213476, 9.003336, 1000)
+        self.env_= makeEnvironment((2025, 10, 23, 17), "America/Denver", 47.213476, 9.003336, 1000)
             
-        self.flight_ = Flight(
-            rocket=r1,
-            environment=env,
+        flight = Flight(
+            rocket=self.rocket_,
+            environment=self.env_,
             inclination=85,
             heading=105,
             rtol=1e-6,
@@ -156,19 +158,42 @@ class RocketPySimulation(SimulatedRocket):
             max_time=600,
             rail_length=5.2,
         )  
-        #for checking that everything looks ok
-        self.flight_.plots.trajectory_3d()
+        self.rocket_state_=flight.out_of_rail_state
+       
     def getAccelerometerValue(self):
-        pass
+        return self.acceleration_
     def getAltitude(self):
-        pass
+        # From the state vector at index 3:
+        # state = [t, x, y, z, vx, vy, vz, e0, e1, e2, e3, omega1, omega2, omega3]
+        #          0  1  2  3   4   5   6   7   8   9  10    11      12      13
+        return self.rocket_state_[3]
     def getEncoderValues(self):
         pass
     def getGyroscopeValue(self):
-        pass
-    def setControlOutputs(list):
-        pass
-    def advanceOneTimeSlice(self, time_slice:int):
-        rocket_state=self.flight_.get_solution_at_time(time_slice)
+        # From the state vector at indices 11, 12, 13:
+        # state = [t, x, y, z, vx, vy, vz, e0, e1, e2, e3, omega1, omega2, omega3]
+        #          0  1  2  3   4   5   6   7   8   9  10    11      12      13
         
+        omega1 = self.rocket_state_[11]  # pitch rate (w1)
+        omega2 = self.rocket_state_[12]  # yaw rate (w2)
+        omega3 = self.rocket_state_[13]  # roll rate (w3)
+        
+        return [omega1, omega2, omega3]  # pitch, yaw, roll
+    def setControlOutputs(list):
+        #this should set the goal angles, but the updating of the actual
+        #angles should be kept separate
+        pass
+    def moveFins(self, time_slice):
+        '''
+        A Helper function to make advanceOneTimeSlice look less horrific
+        '''
+    def advanceOneTimeSlice(self, time_slice:int):
+        flight = Flight(
+            rocket=self.rocket_,
+            env=self.env_,
+            initial_solution=self.rocket_state_
+        )
+        self.rocket_state_=flight.get_solution_at_time(time_slice)
+        self.acceleration_= math.sqrt(flight.ax**2 + flight.ay**2 + flight.az **2 )
+
         return 
