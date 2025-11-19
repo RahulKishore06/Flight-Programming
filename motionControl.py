@@ -99,7 +99,7 @@ class PDScript:
 
         '''
         self.simulation_=simulation
-    def get_canard_deflections():
+    def get_canard_deflections(self, current_time: float) -> list:
         '''
         Runs the PD script
         Outputs 4 deflection angles calculated by the script'''

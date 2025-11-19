@@ -178,6 +178,8 @@ class RocketPySimulation(SimulatedRocket):
             rail_length=5.2,
         )  
         self.rocket_state_=flight.out_of_rail_state
+        #put in time to the front of this vector
+        self.rocket_state_= np.concatenate([[0],self.rocket_state_])
         self.cur_pitch_=0
         self.cur_yaw_=0
        
@@ -202,7 +204,7 @@ class RocketPySimulation(SimulatedRocket):
         #should we introduce some arbritrary noise here?
 
         return [omega1, omega2, omega3]  # pitch, yaw, roll
-    def setControlOutputs(list):
+    def setControlOutputs(self, list):
         #this should set the goal angles, but the updating of the actual
         #angles should be kept separate
         pass
@@ -232,16 +234,18 @@ class RocketPySimulation(SimulatedRocket):
         )
         #Fetch rocket state and all relevant parameters
         self.rocket_state_=flight.get_solution_at_time(time_slice)
+        #Put in time to the front of this vector. Not sure why it isn't done automatically.
+        self.rocket_state_= np.concatenate([[0],self.rocket_state_])
         self.acceleration_= math.sqrt(flight.ax.get_value(time_slice)**2 + flight.ay.get_value(time_slice)**2 + flight.az.get_value(time_slice) **2 )
         self.cur_pitch_+=self.rocket_state_[11]
-        self.cur_yaw_+=self.rocket_state[12]
+        self.cur_yaw_+=self.rocket_state_[12]
     def getRocketPosition(self) -> list:
         '''
         DO NOT LET THE PD SCRIPT CALL THIS!
         Returns the rocket's current position in the order
         [ x_coord, y_coord, z_coord ]
         '''
-        return [self.rocket_state[1], self.rocket_state_[2], self.rocket_state_[3]]
+        return [self.rocket_state_[1], self.rocket_state_[2], self.rocket_state_[3]]
     def getRocketOrientation(self) -> list:
         '''
         DO NOT LET THE PD SCRIPT CALL THIS!
