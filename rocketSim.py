@@ -130,6 +130,22 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
 
 
 class RocketPySimulation(SimulatedRocket):
+    '''
+    Contains the following attributes
+    rocket_ (Rocket): The rocket used in the simulation. Uses makeDefaultRocket to make it
+    env_ (Environment): The environment the rocket is launched in. 
+    rocket_state_ (list): A list that contains details about the rocket state at the current timestamp 
+    dictated by the scheduler
+    acceleration_ (float): The Rocket's current acceleration magnitude at the current timestamp dictated
+    by the scheduler
+    goal_angles_ (list): A list of 4 (maybe 3 if we change it) goal angles for the fins at the current timestamp
+    dictated by the scheduler.
+    cur_pitch_ (float): A float representing the rocket's current pitch relative to launch orientation at the 
+    current timestamp dictated 
+    by the scheduler
+    cur_yaw_ (float): A float representing the rocket's current yaw relative to laucnh orientation at the current
+    timestamp dictated
+    '''
     def __init__(self):
         '''
         Sets up the rocketPy Simulation.
@@ -159,6 +175,8 @@ class RocketPySimulation(SimulatedRocket):
             rail_length=5.2,
         )  
         self.rocket_state_=flight.out_of_rail_state
+        self.cur_pitch_=0
+        self.cur_yaw_=0
        
     def getAccelerometerValue(self):
         return self.acceleration_
@@ -178,6 +196,8 @@ class RocketPySimulation(SimulatedRocket):
         omega2 = self.rocket_state_[12]  # yaw rate (w2)
         omega3 = self.rocket_state_[13]  # roll rate (w3)
         
+        #should we introduce some arbritrary noise here?
+
         return [omega1, omega2, omega3]  # pitch, yaw, roll
     def setControlOutputs(list):
         #this should set the goal angles, but the updating of the actual
@@ -187,13 +207,38 @@ class RocketPySimulation(SimulatedRocket):
         '''
         A Helper function to make advanceOneTimeSlice look less horrific
         '''
+        pass
     def advanceOneTimeSlice(self, time_slice:int):
+        #Calculate new fin positions
+        self.moveFins()
+        #Update rocket
+
+        #Make new Flight
         flight = Flight(
             rocket=self.rocket_,
             env=self.env_,
             initial_solution=self.rocket_state_
         )
+        #Fetch rocket state and all relevant parameters
         self.rocket_state_=flight.get_solution_at_time(time_slice)
-        self.acceleration_= math.sqrt(flight.ax**2 + flight.ay**2 + flight.az **2 )
+        self.acceleration_= math.sqrt(flight.ax.get_value(time_slice)**2 + flight.ay.get_value(time_slice)**2 + flight.az.get_value(time_slice) **2 )
+        self.cur_pitch_+=self.rocket_state_[11]
+        self.cur_yaw_+=self.rocket_state[12]
+    def getRocketPosition(self) -> list:
+        '''
+        DO NOT LET THE PD SCRIPT CALL THIS!
+        Returns the rocket's current position in the order
+        [ x_coord, y_coord, z_coord ]
+        '''
+        return [self.rocket_state[1], self.rocket_state_[2], self.rocket_state_[3]]
+    def getRocketOrientation(self) -> list:
+        '''
+        DO NOT LET THE PD SCRIPT CALL THIS!
+        Returns the rocket's true pitch and yaw in the order
+        [ pitch, yaw ]
+        '''
+        return [self.cur_pitch_, self.cur_yaw_]
 
-        return 
+    
+
+        

@@ -1,4 +1,5 @@
 from template import SimulatedRocket
+from rocketSim import RocketPySimulation
 import math
 import time
 def main():
@@ -85,7 +86,26 @@ def main():
         #check if above min alt
         if (altitude>min_alt):
             pass
-            
+
+class PDScript:
+    '''
+    Contains the logic that will actually be running inside the microcontroller
+    Contains the following Parameters
+    simulation_ (RocketPySimulation): The simulation object passed by reference
+    '''           
+    def __init__(self, simulation: RocketPySimulation):
+        '''
+        Initialize all the starting variables for the script
+
+        '''
+        self.simulation_=simulation
+    def get_canard_deflections():
+        '''
+        Runs the PD script
+        Outputs 4 deflection angles calculated by the script'''
+
+        #default value for now, just wanna check that plotting works 
+        return [0,0,0,0]
 
 
 # class KalmanFilter:
