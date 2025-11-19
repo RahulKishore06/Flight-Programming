@@ -164,6 +164,8 @@ class RocketPySimulation(SimulatedRocket):
         # Environment conditions
         self.env_= makeEnvironment((2025, 10, 23, 17), "America/Denver", 47.213476, 9.003336, 1000)
             
+        #Max_time is set to 10s to give it ample time to clear the launch rail
+        #Setting max_time_step to prevent errors
         flight = Flight(
             rocket=self.rocket_,
             environment=self.env_,
@@ -171,7 +173,8 @@ class RocketPySimulation(SimulatedRocket):
             heading=105,
             rtol=1e-6,
             atol=1e-6,
-            max_time=600,
+            max_time=10,
+            max_time_step=0.01,
             rail_length=5.2,
         )  
         self.rocket_state_=flight.out_of_rail_state
@@ -210,14 +213,22 @@ class RocketPySimulation(SimulatedRocket):
         pass
     def advanceOneTimeSlice(self, time_slice:int):
         #Calculate new fin positions
-        self.moveFins()
+        self.moveFins(time_slice)
         #Update rocket
 
         #Make new Flight
+        #Rail length doesn't matter since the start state for the simulation is after the rocket leaves the rail
+        #max time is time_slice+1 to prevent the sim from losing its mind
+        print(self.rocket_state_)
         flight = Flight(
             rocket=self.rocket_,
-            env=self.env_,
-            initial_solution=self.rocket_state_
+            environment=self.env_,
+            initial_solution=self.rocket_state_,
+            rail_length=0.1,
+            rtol=1e-6,
+            atol=1e-6,
+            max_time=time_slice+1,
+            max_time_step=0.01,
         )
         #Fetch rocket state and all relevant parameters
         self.rocket_state_=flight.get_solution_at_time(time_slice)
