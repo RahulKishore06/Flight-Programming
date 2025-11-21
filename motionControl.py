@@ -1,4 +1,5 @@
 from template import SimulatedRocket
+from rocketSim import RocketPySimulation
 import math
 import time
 def main():
@@ -69,80 +70,103 @@ def main():
         angular_velocities=SimulatedRocket.getGyroscopeValue()
         altitude=SimulatedRocket.getAltitude()
 
+        pitch_rate=angular_velocities[0]
+        yaw_rate=angular_velocities[1]
+        roll_rate=angular_velocities[2]
+
         #Use kalman filter to get true angular velocities
-        filtered_pitch_rate=pitch_filter.update(angular_velocities[0])
-        filtered_yaw_rate=yaw_filter.update(angular_velocities[1])
-        filtered_roll_rate=roll_filter.update(angular_velocities[2])
+        # filtered_pitch_rate=pitch_filter.update(angular_velocities[0])
+        # filtered_yaw_rate=yaw_filter.update(angular_velocities[1])
+        # filtered_roll_rate=roll_filter.update(angular_velocities[2])
 
         #update current pitch and yaw
-        current_pitch+=filtered_pitch_rate*dt
-        current_yaw+=filtered_yaw_rate*dt
+        current_pitch+=pitch_rate*dt
+        current_yaw+=yaw_rate*dt
 
         #check if above min alt
         if (altitude>min_alt):
             pass
-            
 
-
-class KalmanFilter:
+class PDScript:
     '''
-    Make a copy of the Kalman Filter class for each value that needs to be filtered.
-    So there is 1 KalmanFilter for each of Roll, Yaw, Pitch and Altitude.
-    Attributes: 
-    X: the estimate of the thing being measured
-    P: The error covariance
-    Q: The process noise
-    R: The measurement noise
-    '''
-    def __init__(self, process_noise:float, measurement_noise:float, initial_estimate:float, initial_covariance:float):
+    Contains the logic that will actually be running inside the microcontroller
+    Contains the following Parameters
+    simulation_ (RocketPySimulation): The simulation object passed by reference
+    '''           
+    def __init__(self, simulation: RocketPySimulation):
         '''
-        The process_noise and measurement_noise are constant parameters that should never really be changed
-        These are the parameters required
-        initial_estimate: The most likely start value for the state being measured. For yaw, it should (hopefully)
-        start as 0
-        initial_covariance: The error covariance
-        process_noise: The process noise covariance
-        measurement_noise: The measurement noise covariance
-        '''
-        self.x = initial_estimate      
-        self.P = initial_covariance    
-        
-        # NEVER CHANGE THIS AFTER IT IS DEFINED!
-        self.Q = process_noise         
-        self.R = measurement_noise     
+        Initialize all the starting variables for the script
 
-    def predict(self):
-        """Prediction step, apparently its called each time before update is called"""
-        # Error covariance increases
-        self.P = self.P + self.Q  
+        '''
+        self.simulation_=simulation
+    def get_canard_deflections(self, current_time: float) -> list:
+        '''
+        Runs the PD script
+        Outputs 4 deflection angles calculated by the script'''
+
+        #default value for now, just wanna check that plotting works 
+        return [0,0,0,0]
+
+
+# class KalmanFilter:
+#     '''
+#     Make a copy of the Kalman Filter class for each value that needs to be filtered.
+#     So there is 1 KalmanFilter for each of Roll, Yaw, Pitch and Altitude.
+#     Attributes: 
+#     X: the estimate of the thing being measured
+#     P: The error covariance
+#     Q: The process noise
+#     R: The measurement noise
+#     '''
+#     def __init__(self, process_noise:float, measurement_noise:float, initial_estimate:float, initial_covariance:float):
+#         '''
+#         The process_noise and measurement_noise are constant parameters that should never really be changed
+#         These are the parameters required
+#         initial_estimate: The most likely start value for the state being measured. For yaw, it should (hopefully)
+#         start as 0
+#         initial_covariance: The error covariance
+#         process_noise: The process noise covariance
+#         measurement_noise: The measurement noise covariance
+#         '''
+#         self.x = initial_estimate      
+#         self.P = initial_covariance    
+        
+#         # NEVER CHANGE THIS AFTER IT IS DEFINED!
+#         self.Q = process_noise         
+#         self.R = measurement_noise     
+
+#     def predict(self):
+#         """Prediction step, apparently its called each time before update is called"""
+#         # Error covariance increases
+#         self.P = self.P + self.Q  
     
-    def update(self, measurement:float):
-        """
-        Update step
-        Receives a noisy measurement
-        Returns the (hopefully) less noisy measurement
-        """
-        #Predict
-        self.predict()
+#     def update(self, measurement:float):
+#         """
+#         Update step
+#         Receives a noisy measurement
+#         Returns the (hopefully) less noisy measurement
+#         """
+#         #Predict
+#         self.predict()
         
-        # Calculate Kalman gain
-        K = self.P / (self.P + self.R)
+#         # Calculate Kalman gain
+#         K = self.P / (self.P + self.R)
         
-        # Update estimate
-        self.x = self.x + K * (measurement - self.x)
+#         # Update estimate
+#         self.x = self.x + K * (measurement - self.x)
         
-        # Update covariance
-        self.P = (1 - K) * self.P
+#         # Update covariance
+#         self.P = (1 - K) * self.P
         
-        return self.x
+#         return self.x
     
-    def get_state(self):
-        """Get current filtered value. No updating is being done in this one"""
-        return self.x
+#     def get_state(self):
+#         """Get current filtered value. No updating is being done in this one"""
+#         return self.x
     
-    def get_covariance(self):
-        """Get current uncertainty (for when things inevitably go wrong)"""
-        return self.P
+#     def get_covariance(self):
+#         """Get current uncertainty (for when things inevitably go wrong)"""
+#         return self.P
 
 
 class PDScript:
