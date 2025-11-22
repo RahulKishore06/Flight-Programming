@@ -133,18 +133,26 @@ class RocketPySimulation(SimulatedRocket):
     '''
     Contains the following attributes
     rocket_ (Rocket): The rocket used in the simulation. Uses makeDefaultRocket to make it
-    env_ (Environment): The environment the rocket is launched in. 
+
+    env_ (Environment): The environment the rocket is launched in.
+
     rocket_state_ (list): A list that contains details about the rocket state at the current timestamp 
     dictated by the scheduler
+
     acceleration_ (float): The Rocket's current acceleration magnitude at the current timestamp dictated
     by the scheduler
+
     goal_angles_ (list): A list of 4 (maybe 3 if we change it) goal angles for the fins at the current timestamp
     dictated by the scheduler.
+
     cur_pitch_ (float): A float representing the rocket's current pitch relative to launch orientation at the 
-    current timestamp dictated 
-    by the scheduler
+    current timestamp dictated by the scheduler
+
     cur_yaw_ (float): A float representing the rocket's current yaw relative to laucnh orientation at the current
     timestamp dictated
+
+    cur_time_ (float): A float representing the current time in the simulation. 
+
     '''
     def __init__(self):
         '''
@@ -178,7 +186,7 @@ class RocketPySimulation(SimulatedRocket):
             rail_length=5.2,
         )  
         self.rocket_state_=flight.out_of_rail_state
-        #put in time to the front of this vector
+        #put in time to the front of this vector because it isn't included automatically
         self.rocket_state_= np.concatenate([[0],self.rocket_state_])
         self.cur_pitch_=0
         self.cur_yaw_=0
@@ -221,7 +229,7 @@ class RocketPySimulation(SimulatedRocket):
         #Make new Flight
         #Rail length doesn't matter since the start state for the simulation is after the rocket leaves the rail
         #max time is time_slice+1 to prevent the sim from losing its mind
-        print(self.rocket_state_)
+        # print(self.rocket_state_)
         flight = Flight(
             rocket=self.rocket_,
             environment=self.env_,
@@ -234,8 +242,6 @@ class RocketPySimulation(SimulatedRocket):
         )
         #Fetch rocket state and all relevant parameters
         self.rocket_state_=flight.get_solution_at_time(time_slice)
-        #Put in time to the front of this vector. Not sure why it isn't done automatically.
-        self.rocket_state_= np.concatenate([[0],self.rocket_state_])
         self.acceleration_= math.sqrt(flight.ax.get_value(time_slice)**2 + flight.ay.get_value(time_slice)**2 + flight.az.get_value(time_slice) **2 )
         self.cur_pitch_+=self.rocket_state_[11]
         self.cur_yaw_+=self.rocket_state_[12]

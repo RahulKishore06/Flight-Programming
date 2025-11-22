@@ -17,19 +17,27 @@ def scheduler():
 
     #FOR TESTING!
     counter=0
-    while (sim.getAltitude()>previous_height):
+    current_altitude=sim.getAltitude()
+    while (current_altitude>previous_height):
+        previous_height=current_altitude
+
         sim.advanceOneTimeSlice(time_change)
-        previous_height=sim.getAltitude()
-        #Plotting
-        rocket_coordinates_over_time.append(sim.getRocketPosition)
-        rocket_attitude=sim.getRocketOrientation()
-        rocket_pitch_over_time.append([current_time, rocket_attitude[0]])
-        rocket_yaw_over_time.append([current_time, rocket_attitude[1]])
-        rocket_roll_over_time.append([current_time, sim.getGyroscopeValue()[2]])
+
+        current_altitude=sim.getAltitude()
+
         #Calculating deflection angles and then updating the simulation
         deflection_angles=controller.get_canard_deflections(current_time)
         sim.setControlOutputs(deflection_angles)
         current_time+=time_change
+        
+        #Plotting Coordinates
+        rocket_coordinates_over_time.append(sim.getRocketPosition())
+
+        #Plotting Pitch, Yaw, Roll
+        rocket_attitude=sim.getRocketOrientation()
+        rocket_pitch_over_time.append([current_time, rocket_attitude[0]])
+        rocket_yaw_over_time.append([current_time, rocket_attitude[1]])
+        rocket_roll_over_time.append([current_time, sim.getGyroscopeValue()[2]])
         
         #FOR TESTING
         counter+=1
