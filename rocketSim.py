@@ -142,8 +142,11 @@ class RocketPySimulation(SimulatedRocket):
     acceleration_ (float): The Rocket's current acceleration magnitude at the current timestamp dictated
     by the scheduler
 
-    goal_angles_ (list): A list of 4 (maybe 3 if we change it) goal angles for the fins at the current timestamp
-    dictated by the scheduler.
+    goal_angles_ (list): A list of 4 (maybe 3 if we change it to a 3 fin design) goal angles for the fins at the 
+    current timestamp dictated by the scheduler. (angles in radians)
+
+    actual_angles_ (list): A list of 4 (maybe 3 if we change it to a 3 fin design) canard angles for the fins at
+    the current timestamp dictated by the scheduler. 
 
     cur_pitch_ (float): A float representing the rocket's current pitch relative to launch orientation at the 
     current timestamp dictated by the scheduler
@@ -152,6 +155,8 @@ class RocketPySimulation(SimulatedRocket):
     timestamp dictated
 
     prev_time_ (float): A float representing the current time in the simulation. 
+
+    motor_max_rotation_ (float): A float representing the maximum rotation rate of the motor (rads s^-1)
 
     '''
     def __init__(self):
@@ -191,7 +196,12 @@ class RocketPySimulation(SimulatedRocket):
         self.cur_pitch_=0
         self.cur_yaw_=0
         self.prev_time_=0
-       
+        #since all the canard angles should start at 0 (straight up)
+        self.goal_angles_=[0,0,0,0]
+        self.actual_angles_=[0,0,0,0]
+
+        #REMIND ME TO PUT IN AN ACTUAL VALUE FOR THIS
+        self.motor_max_rotation_=1
     def getAccelerometerValue(self):
         return self.acceleration_
     def getAltitude(self):
@@ -213,22 +223,33 @@ class RocketPySimulation(SimulatedRocket):
         #should we introduce some arbritrary noise here?
 
         return [omega1, omega2, omega3]  # pitch, yaw, roll
-    def setControlOutputs(self, list):
+    def setControlOutputs(self, angles:list):
         #this should set the goal angles, but the updating of the actual
         #angles should be kept separate
-        pass
+        self.goal_angles_=angles
     def moveFins(self, current_time):
         '''
         A Helper function to make advanceOneTimeSlice look less horrific
         '''
         time_change=current_time-self.prev_time_
-
-        pass
+        maximum_angle_change=time_change*self.motor_max_rotation_
+        for i in range(4):
+            canard_angle=self.actual_angles_[i]
+            goal_angle=self.goal_angles_[i]
+            if math.fabs(canard_angle-goal_angle)<maximum_angle_change:
+                #can sufficient rotational speed to reach goal angle within time change
+                self.actual_angles_[i]=goal_angle
+            else:
+                #move canard angle closer to goal angle
+                if (canard_angle<goal_angle):
+                    self.actual_angles_[i]+=maximum_angle_change
+                else:
+                    self.actual_angles_[i]-=maximum_angle_change
     def advanceOneTimeSlice(self, current_time:int):
         #Calculate new fin positions
         self.moveFins(current_time)
         #Update rocket
-
+        
         #Make new Flight
         #Rail length doesn't matter since the start state for the simulation is after the rocket leaves the rail
         #max time is time_slice+1 to prevent the sim from losing its mind
