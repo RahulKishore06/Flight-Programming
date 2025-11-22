@@ -20,15 +20,15 @@ def scheduler():
     current_altitude=sim.getAltitude()
     while (current_altitude>previous_height):
         previous_height=current_altitude
+        current_time+=time_change
 
-        sim.advanceOneTimeSlice(time_change)
+        sim.advanceOneTimeSlice(current_time)
 
         current_altitude=sim.getAltitude()
 
         #Calculating deflection angles and then updating the simulation
         deflection_angles=controller.get_canard_deflections(current_time)
         sim.setControlOutputs(deflection_angles)
-        current_time+=time_change
         
         #Plotting Coordinates
         rocket_coordinates_over_time.append(sim.getRocketPosition())
@@ -41,7 +41,7 @@ def scheduler():
         
         #FOR TESTING
         counter+=1
-        if (counter>500):
+        if (counter>10000):
             break
     coords_array = np.array(rocket_coordinates_over_time)
     x_coords = coords_array[:, 0]

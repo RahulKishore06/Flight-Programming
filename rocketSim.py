@@ -151,7 +151,7 @@ class RocketPySimulation(SimulatedRocket):
     cur_yaw_ (float): A float representing the rocket's current yaw relative to laucnh orientation at the current
     timestamp dictated
 
-    cur_time_ (float): A float representing the current time in the simulation. 
+    prev_time_ (float): A float representing the current time in the simulation. 
 
     '''
     def __init__(self):
@@ -190,6 +190,7 @@ class RocketPySimulation(SimulatedRocket):
         self.rocket_state_= np.concatenate([[0],self.rocket_state_])
         self.cur_pitch_=0
         self.cur_yaw_=0
+        self.prev_time_=0
        
     def getAccelerometerValue(self):
         return self.acceleration_
@@ -216,14 +217,16 @@ class RocketPySimulation(SimulatedRocket):
         #this should set the goal angles, but the updating of the actual
         #angles should be kept separate
         pass
-    def moveFins(self, time_slice):
+    def moveFins(self, current_time):
         '''
         A Helper function to make advanceOneTimeSlice look less horrific
         '''
+        time_change=current_time-self.prev_time_
+
         pass
-    def advanceOneTimeSlice(self, time_slice:int):
+    def advanceOneTimeSlice(self, current_time:int):
         #Calculate new fin positions
-        self.moveFins(time_slice)
+        self.moveFins(current_time)
         #Update rocket
 
         #Make new Flight
@@ -237,14 +240,15 @@ class RocketPySimulation(SimulatedRocket):
             rail_length=0.1,
             rtol=1e-6,
             atol=1e-6,
-            max_time=time_slice+1,
+            max_time=current_time+1,
             max_time_step=0.01,
         )
         #Fetch rocket state and all relevant parameters
-        self.rocket_state_=flight.get_solution_at_time(time_slice)
-        self.acceleration_= math.sqrt(flight.ax.get_value(time_slice)**2 + flight.ay.get_value(time_slice)**2 + flight.az.get_value(time_slice) **2 )
+        self.rocket_state_=flight.get_solution_at_time(current_time)
+        self.acceleration_= math.sqrt(flight.ax.get_value(current_time)**2 + flight.ay.get_value(current_time)**2 + flight.az.get_value(current_time) **2 )
         self.cur_pitch_+=self.rocket_state_[11]
         self.cur_yaw_+=self.rocket_state_[12]
+        self.prev_time_=current_time
     def getRocketPosition(self) -> list:
         '''
         DO NOT LET THE PD SCRIPT CALL THIS!
