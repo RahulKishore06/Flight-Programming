@@ -284,7 +284,33 @@ class RocketPySimulation(SimulatedRocket):
         [ pitch, yaw ]
         '''
         return [self.cur_pitch_, self.cur_yaw_]
+    def getRocketIdealAttitiude(self, timestep: int):
+        '''
+        DO NOT LET THE PD Script Call This!
+        Takes a sample of the rocket's pitch every timestep, adds it to a csv
+        The values are put in the order:
+        time, pitch, yaw
+        For an L1 launch, a timestep of 1s is probably fine
+        '''
+        flight = Flight(
+            rocket=self.rocket_,
+            environment=self.env_,
+            inclination=85,
+            heading=105,
+            rtol=1e-6,
+            atol=1e-6,
+            max_time=600,
+            terminate_on_apogee=True,
+            max_time_step=0.01,
+            rail_length=5.2,
+        )  
+        end_time = flight.apogee_time
+        cur_time= flight.out_of_rail_time
+        rocket_attitudes=[]
+        rocket_theta_at_time=flight.attitude_angle()
 
-    
+        while (cur_time<flight.apogee_time):
+            pass
+            
 
-        
+
