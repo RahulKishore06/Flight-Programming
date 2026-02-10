@@ -99,8 +99,8 @@ def makeMotor(option):
             throat_radius=0.0114,
             interpolation_method="linear",
             dry_mass=0.00000000001,
-            grains_center_of_mass_position=-0.383,
-            center_of_dry_mass_position=-0.683,
+            grains_center_of_mass_position=-0.4,
+            center_of_dry_mass_position=-0.183,
             dry_inertia=(0.0000000000001, 0.0000000000001, 0.0000000000001),
             nozzle_position=-.624,
         )
@@ -143,8 +143,10 @@ r1.draw()
 # --------------------------------------------------------------
 
 # Environment conditions
-env= makeEnvironment((2025, 10, 23, 17), "America/Denver", 47.213476, 9.003336, 1000)
-    
+env = makeEnvironment((2025, 10, 23, 17), "America/Denver", 40.213476, 9.003336, 1000)
+env.set_elevation(0)
+env.prints.launch_site_details()
+
 test_flight = Flight(
     rocket=r1,
     environment=env,
