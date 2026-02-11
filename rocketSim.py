@@ -88,7 +88,7 @@ def makeMotor(option):
         #update values as required
         motor = SolidMotor(
             thrust_source = "AeroTech_H242T.csv",
-            reshape_thrust_curve=(5.8, 8800),
+            # reshape_thrust_curve=(5.8, 8800),
             grain_number=2,
             grain_separation=0.006,
             grain_outer_radius=0.035,
@@ -156,6 +156,15 @@ test_flight = Flight(
     atol=1e-6,
     max_time=600,
     rail_length=5.2,
+
+
+  
+# Flight.initial_solution = [tInit, x_init,
+# y_init, z_init, vx_init, vy_init, vz_init, e0_init, e1_init,
+# e2_init, e3_init, w1_init, w2_init, w3_init]
+
+
+
 )    
 
 test_flight.plots.trajectory_3d()

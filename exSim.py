@@ -21,7 +21,7 @@ env.max_expected_height = 6000
 motor_M1520 = GenericMotor(
     # burn specs
     thrust_source="AeroTech_H242T.csv",
-    burn_time=4.897,
+    burn_time=2.897,
     propellant_initial_mass=3.737,
     dry_mass=2.981,
     # casing specs: Pro98 3G Gen2 casing
@@ -107,14 +107,21 @@ test_flight = Flight(
     environment=env,
     inclination=80,
     heading=75,
-    rail_length=5.18,
+    rail_length=5.18
+    # e1=0,
+    # e2=0,
+    # e3=0,
+    # w1=0,
+    # w2=0,
+    # w3=0,
+
 )
 
-# test_flight.prints.initial_conditions()
+test_flight.prints.initial_conditions()
 # test_flight.prints.surface_wind_conditions()
 # test_flight.prints.launch_rail_conditions()
 test_flight.prints.out_of_rail_conditions()
-test_flight.prints.burn_out_conditions()
+# test_flight.prints.burn_out_conditions()
 test_flight.prints.apogee_conditions()
 # test_flight.prints.events_registered()
 # test_flight.prints.impact_conditions()
@@ -123,3 +130,6 @@ test_flight.prints.maximum_values()
 # test_flight.prints.numerical_integration_settings()
 
 test_flight.plots.trajectory_3d()
+
+
+
