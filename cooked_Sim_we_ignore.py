@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from rocketpy import Environment, Flight, Function, GenericMotor, Rocket
-from rocketpy.simulation.flight_data_importer import FlightDataImporter
+from rocketpy import Environment, Flight, Function, SolidMotor, Rocket
 
 
 env = Environment(
@@ -26,16 +25,24 @@ env.max_expected_height = 1000
 # MOTOR DIMENSION DONE 2/12/2026 ====================
 # https://www.thrustcurve.org/motors/AeroTech/H242T/
 # ===================================================
-motor_H2427T = GenericMotor(
+motor_H2427T = SolidMotor(
     # burn specs
     thrust_source="AeroTech_H242T.csv",
     burn_time=1.2,
-    propellant_initial_mass=.111,
     dry_mass=.258-.111,
-    chamber_radius=0.019,
-    chamber_height=0.152,
-    chamber_position=-1.064,
+    dry_inertia=(0.0000000000001, 0.0000000000001, 0.0000000000001),
+    center_of_dry_mass_position=-0.183,
+    # chamber_radius=0.019,
+    # chamber_height=0.152,
+    # chamber_position=-1.064,
     nozzle_radius=0.00297,
+    grain_number=2,
+    grain_separation=0.006,
+    grain_outer_radius=0.035,
+    grain_initial_inner_radius=0.016,
+    grain_initial_height=0.15,
+    grain_density=1748.9,
+    grains_center_of_mass_position=-0.4,
 )
 # motor_H2427T.info()
 
@@ -75,22 +82,32 @@ def prometheus_cd_at_ma(mach):
 # ===================================================
 avioAFS = Rocket(
     radius=0.04015,  # 5.5" diameter circle
-    mass=1.797,
-    inertia=(1.0, 1.0, 0.026),
-    power_off_drag=prometheus_cd_at_ma,
-    power_on_drag=lambda x: prometheus_cd_at_ma(x) * 1.02,  # 5% increase in drag
+    mass=1.197,
+    inertia=(15.07, 15.07, 0.067),
+    power_off_drag=0.65,
+    power_on_drag=0.65,
     # power_off_drag=0.1,
     # power_on_drag=0.1,
     center_of_mass_without_motor=-.512,
     coordinate_system_orientation="tail_to_nose",
     )
 
+factor = 0.38 / avioAFS.power_off_drag(0.6)  # From CFD analysis
+avioAFS.power_on_drag *= factor
+avioAFS.power_off_drag *= factor
+
 
 # avioAFS_v1.set_rail_buttons(0.69, 0.21, 60)
 
-avioAFS.add_motor(motor=motor_H2427T, position=-1.14)
+avioAFS.add_motor(
+    motor=motor_H2427T, 
+    position=-1.14
+    )
 
-nose_cone = avioAFS.add_nose(length=0.254, kind="Von Karman", position=0)
+nose_cone = avioAFS.add_nose(
+    length=0.254, 
+    kind="Von Karman", 
+    position=0)
 
 canard_set = avioAFS.add_trapezoidal_fins(
     n=4,
@@ -129,14 +146,23 @@ main = avioAFS.add_parachute(
 # avioAFS.draw()
 # avioAFS.plots.drag_curves()
 
+print("Before Flight instantiation")
 test_flight = Flight(
     rocket=avioAFS,
     environment=env,
-    inclination=80,
-    heading=0,
-    rail_length=5.18
+    inclination=85,
+    heading=105,
+    rtol=1e-6,
+    atol=1e-6,
+    max_time=600,
+    rail_length=5.2,
+    )
+print("After Flight instantiation")
 
-)
+
+
+
+
 
 # # test_flight.prints.initial_conditions()
 # # test_flight.prints.surface_wind_conditions()

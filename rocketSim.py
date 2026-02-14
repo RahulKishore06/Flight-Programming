@@ -19,36 +19,41 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     motor: An instance of a motor class (SolidMotor etc)
     numFins: The number of fins to be used on the rocket (3 or 4)
     sensors: A list of sensors on the rocket'''
-    #REMIND ME TO FILL IN ACTUAl VALUES
-    # default values
+    
+    # ROCKET DIMENSIONS DONE 2/12/2026 ====================
+    # https://www.thrustcurve.org/motors/AeroTech/H242T/
+    # =====================================================
     rocket = Rocket(
-        radius=0.04013,
-        mass=1.18,
-        inertia=(15.07, 15.07, 0.067), # IDK how to find this without calculating every second it moves
-        power_off_drag=0.65, # Haven't found.
+        radius=0.04015,  # 5.5" diameter circle
+        mass=1.197,
+        inertia=(15.07, 15.07, 0.067),
+        power_off_drag=0.65,
         power_on_drag=0.65,
-        center_of_mass_without_motor=0,
+        # power_off_drag=0.1,
+        # power_on_drag=0.1,
+        center_of_mass_without_motor=-.512,
         coordinate_system_orientation="tail_to_nose",
     )
 
+    # ============== DO WE NEED CFD ANALYSIS? =========================
     factor = 0.38 / rocket.power_off_drag(0.6)  # From CFD analysis
     rocket.power_on_drag *= factor
     rocket.power_off_drag *= factor
+    # =================================================================
 
-    # add nose
+    # NOSE DIMESIONS DONE 2/13/2026 ====================
+    # AFS_V1_Rocket - OpenRocket
+    # ==================================================
     rocket.add_nose(
         length=0.254,
         kind="vonKarman",
-        position=0.523,
+        position=0,
     )
 
-    # add tail
-    # rocket.add_tail(
-    #     top_radius=0.0655, bottom_radius=0.0535, length=0.508, position=-0.112
-    # )
-
-    # add motor
-    rocket.add_motor(motor, 0)
+    # MOTOR DIMENSIONS DONE 2/13/2026 ====================
+    # AFS_V1_Rocket - OpenRocket
+    # ====================================================
+    rocket.add_motor(motor, -1.14)
     
     # add parachute
     rocket.add_parachute(
@@ -60,18 +65,34 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
         lag=0.5,
     )
 
-    # add fins
+    # CANARD FIN DIMENSIONS DONE 2/13/2026 ====================
+    # AFS_V1_Rocket - OpenRocket
+    # =========================================================
     rocket.add_trapezoidal_fins(
         n=numFins,
-        root_chord=0.126,
-        tip_chord=0.0744,
-        span=0.0762,
-        position=-0.366,
+        root_chord=0.05,
+        tip_chord=0.0254,
+        span=0.03,
+        position=-0.382,
+        sweep_length=0.0145,
         cant_angle=0,
         airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
     )
-    
-    
+        
+    # MAIN FIN DIMENSIONS DONE 2/13/2026 ====================
+    # AFS_V1_Rocket - OpenRocket
+    # =======================================================
+    rocket.add_trapezoidal_fins(
+        n=numFins,
+        span=0.0635,
+        root_chord=0.127,
+        tip_chord=0.0762,
+        position=-1.02,
+        sweep_length=0.025,
+        cant_angle=60,
+    )
+
+    # DNF YET ============================================
     for sensor in sensors:
         rocket.add_sensor(sensor)
     return rocket
@@ -80,29 +101,29 @@ def makeMotor(option):
     '''
     Set up the rocket motor to be simulated
     Available options are 
-    1. Test
+    1. motor_H242T
     2. Cert (TO BE ADDED!)
     3. Spaceshot (TO BE ADDED!)
     '''
-    if option=="Test":
+    if option=="motor_H242T":
         #update values as required
         motor = SolidMotor(
             thrust_source = "AeroTech_H242T.csv",
             # reshape_thrust_curve=(5.8, 8800),
-            grain_number=2,
+            grain_number=4,
             grain_separation=0.006,
             grain_outer_radius=0.035,
             grain_initial_inner_radius=0.016,
-            grain_initial_height=0.15,
-            grain_density=1748.9,
+            grain_initial_height=0.075,
+            grain_density=0.065,
             nozzle_radius=0.0335,
             throat_radius=0.0114,
             interpolation_method="linear",
             dry_mass=0.00000000001,
-            grains_center_of_mass_position=-0.4,
-            center_of_dry_mass_position=-0.183,
+            grains_center_of_mass_position=0.16,
+            center_of_dry_mass_position=0.15,
             dry_inertia=(0.0000000000001, 0.0000000000001, 0.0000000000001),
-            nozzle_position=-.624,
+            nozzle_position=-0.1,
         )
         return motor
     if option=="Cert":
@@ -132,9 +153,11 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
 
     return env
 
-motor = makeMotor("Test")
 
-r1= makeDefaultRocket(motor, 4, [])
+
+motor_H242T = makeMotor("motor_H242T")
+
+r1 = makeDefaultRocket(motor_H242T, 4, [])
 
 # r1.info()
 r1.draw()
@@ -156,14 +179,6 @@ test_flight = Flight(
     atol=1e-6,
     max_time=600,
     rail_length=5.2,
-
-
-  
-# Flight.initial_solution = [tInit, x_init,
-# y_init, z_init, vx_init, vy_init, vz_init, e0_init, e1_init,
-# e2_init, e3_init, w1_init, w2_init, w3_init]
-
-
 
 )    
 
