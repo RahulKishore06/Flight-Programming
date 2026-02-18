@@ -7,7 +7,7 @@ from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Moto
 
 # =================
 
-# Based on "rocket 11.6.ork" in the AFS Mech Drive folder. 
+# Based on "AFS Rocket V1" in the AFS Mech Drive folder. 
 
 # =================
 
@@ -65,20 +65,8 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
         lag=0.5,
     )
 
-    # CANARD FIN DIMENSIONS DONE 2/13/2026 ====================
-    # AFS_V1_Rocket - OpenRocket
-    # =========================================================
-    rocket.add_trapezoidal_fins(
-        n=numFins,
-        root_chord=0.05,
-        tip_chord=0.0254,
-        span=0.03,
-        position=-0.382,
-        sweep_length=0.0145,
-        cant_angle=0,
-        airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
-    )
-        
+
+
     # MAIN FIN DIMENSIONS DONE 2/13/2026 ====================
     # AFS_V1_Rocket - OpenRocket
     # =======================================================
@@ -89,7 +77,7 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
         tip_chord=0.0762,
         position=-1.02,
         sweep_length=0.025,
-        cant_angle=60,
+        cant_angle=0,
     )
 
     # DNF YET ============================================
@@ -116,14 +104,14 @@ def makeMotor(option):
             grain_initial_inner_radius=0.016,
             grain_initial_height=0.075,
             grain_density=0.065,
-            nozzle_radius=0.0335,
+            nozzle_radius=0.0085,
             throat_radius=0.0114,
             interpolation_method="linear",
             dry_mass=0.00000000001,
             grains_center_of_mass_position=0.16,
             center_of_dry_mass_position=0.15,
             dry_inertia=(0.0000000000001, 0.0000000000001, 0.0000000000001),
-            nozzle_position=-0.1,
+            nozzle_position=-0.004,
         )
         return motor
     if option=="Cert":
@@ -147,11 +135,26 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
     )   
     env.set_date(date, timezone)
     #Use the open-elevation API to automatically find elevation
+    env.set_atmospheric_model(type="standard_atmosphere")
+
     env.set_elevation("Open-Elevation")
 
     env.max_expected_height=max_expected_height
+    # env.plots.atmospheric_model()
 
     return env
+
+
+
+def update_canards(canards: TrapezoidalFins, angle: float):
+    '''
+    Update the canard fin angles during flight
+    canards: The canard fin object
+    angle: The new angle of the canard fins in degrees
+    '''
+    canards.cant_angle = angle
+
+
 
 
 
@@ -159,8 +162,28 @@ motor_H242T = makeMotor("motor_H242T")
 
 r1 = makeDefaultRocket(motor_H242T, 4, [])
 
+# CANARD FIN DIMENSIONS DONE 2/13/2026 ====================
+# AFS_V1_Rocket - OpenRocket
+# =========================================================
+canards = r1.add_trapezoidal_fins(
+    n=4,
+    root_chord=0.05,
+    tip_chord=0.0254,
+    span=0.03,
+    position=-0.382,
+    sweep_length=0.0145,
+    cant_angle=60,
+    airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
+)
+
+
+
+
 # r1.info()
 r1.draw()
+
+
+
 
 # --------------------------------------------------------------
 # --------------------------------------------------------------
@@ -183,3 +206,5 @@ test_flight = Flight(
 )    
 
 test_flight.plots.trajectory_3d()
+# test_flight.plots.flight_path_angle_data()
+test_flight.plots.attitude_data()
