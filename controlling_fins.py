@@ -144,3 +144,14 @@ def add_afs_canards(
             return air_brakes, _controller
         else:
             return air_brakes
+
+#This is what I added, IDK if it helps :sob: -Jonathan        
+def controller_function(
+    time, 
+    sampling_rate, 
+    state, state_history, 
+    observed_variables, 
+    interactive_objects, 
+    sensors
+):
+     return None
