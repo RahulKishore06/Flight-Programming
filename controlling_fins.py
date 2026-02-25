@@ -44,7 +44,7 @@ def add_afs_canards(
     else:
         return canards
 
-    #This is what I added, IDK if it helps :sob: -Jonathan        
+      
 def canard_controller_function(
     self,
     time, 
@@ -67,6 +67,23 @@ def canard_controller_function(
     roll_rate = self.flight.w1[-1][1]
     # deflection_goal = pd_function(roll_rate)
     # 
+
+    # ADDED STUFF, i commented it out cuz idk if its right (T_T) (Copied from Documentation)-Jonathan
+
+    #vx, vy, vz = state[3], state[4], state[5]
+    #altitude_ASL = state[2]
+    #altitude_AGL = altitude_ASL - env.elevation
+    #wind_x, wind_y = env.wind_velocity_x(altitude_ASL), env.wind_velocity_y(altitude_ASL)
+    #e0, e1, e2, e3 = state[6], state[7], state[8], state[9]
+
+    #observed_variables apparently stores anything we return from this function
+    #SO we can use this to do smthg idk incase we ever need it - Jonosnon
+
+    #if len(observed_variables) > 0:
+        #some_var = observed_variables[-1][0]
+    #else:
+        #some_var = 0
+
 
 
 
