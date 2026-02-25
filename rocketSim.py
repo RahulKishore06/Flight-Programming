@@ -45,6 +45,7 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     # AFS_V1_Rocket - OpenRocket
     # ==================================================
     rocket.add_nose(
+        name="Nose Cone",
         length=0.254,
         kind="vonKarman",
         position=0,
@@ -71,6 +72,7 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     # AFS_V1_Rocket - OpenRocket
     # =======================================================
     rocket.add_trapezoidal_fins(
+        name="Main Fins",
         n=numFins,
         span=0.0635,
         root_chord=0.127,
@@ -146,13 +148,9 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
 
 
 
-def update_canards(canards: TrapezoidalFins, angle: float):
-    '''
-    Update the canard fin angles during flight
-    canards: The canard fin object
-    angle: The new angle of the canard fins in degrees
-    '''
-    canards.cant_angle = angle
+
+
+
 
 
 
@@ -165,22 +163,23 @@ r1 = makeDefaultRocket(motor_H242T, 4, [])
 # CANARD FIN DIMENSIONS DONE 2/13/2026 ====================
 # AFS_V1_Rocket - OpenRocket
 # =========================================================
+
+
 canards = r1.add_trapezoidal_fins(
-    n=4,
-    root_chord=0.05,
-    tip_chord=0.0254,
-    span=0.03,
-    position=-0.382,
-    sweep_length=0.0145,
-    cant_angle=60,
-    airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
-)
-
-
+            name="canards",
+            n=4,
+            root_chord=0.05,
+            tip_chord=0.0254,
+            span=0.03,
+            position=-0.382,
+            sweep_length=0.0145,
+            cant_angle=60,
+            airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
+        )
 
 
 # r1.info()
-r1.draw()
+# r1.draw()
 
 
 
@@ -205,6 +204,11 @@ test_flight = Flight(
 
 )    
 
-test_flight.plots.trajectory_3d()
-# test_flight.plots.flight_path_angle_data()
-test_flight.plots.attitude_data()
+    
+
+
+# test_flight.plots.trajectory_3d()
+# # test_flight.plots.flight_path_angle_data()
+# test_flight.plots.attitude_data()
+
+
