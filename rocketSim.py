@@ -137,7 +137,7 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
     )   
     env.set_date(date, timezone)
     #Use the open-elevation API to automatically find elevation
-    env.set_atmospheric_model(type="standard_atmosphere")
+    env.set_atmospheric_model(type="wyoming_sounding", file="http://weather.uwyo.edu/cgi-bin/sounding?region=samer&TYPE=TEXT%3ALIST&YEAR=2025&MONTH=02&FROM=0200&TO=0200&STNM=72357")
 
     env.set_elevation("Open-Elevation")
 
@@ -173,14 +173,13 @@ canards = r1.add_trapezoidal_fins(
             span=0.03,
             position=-0.382,
             sweep_length=0.0145,
-            cant_angle=60,
+            cant_angle=0,
             airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
         )
 
 
 # r1.info()
 # r1.draw()
-
 
 
 
@@ -191,24 +190,32 @@ canards = r1.add_trapezoidal_fins(
 env = makeEnvironment((2025, 10, 23, 17), "America/Denver", 40.213476, 9.003336, 1000)
 env.set_elevation(0)
 env.prints.launch_site_details()
+env.add_wind_gust(100, 70)
+
+
+
 
 test_flight = Flight(
     rocket=r1,
     environment=env,
-    inclination=85,
+    inclination=60,
     heading=105,
     rtol=1e-6,
     atol=1e-6,
     max_time=600,
     rail_length=5.2,
 
-)    
-
-    
+)
 
 
-# test_flight.plots.trajectory_3d()
+
+
+test_flight.plots.angular_kinematics_data()
+
+
+
+test_flight.plots.trajectory_3d()
 # # test_flight.plots.flight_path_angle_data()
-# test_flight.plots.attitude_data()
+test_flight.plots.attitude_data()
 
 
