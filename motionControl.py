@@ -1,4 +1,4 @@
-from template import SimulatedRocket
+from data_collection import SimulatedRocket
 import math
 import time
 def main():

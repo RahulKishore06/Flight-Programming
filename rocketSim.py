@@ -5,6 +5,9 @@ from scipy.signal import savgol_filter
 
 from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Motor, Environment
 
+from rocketpy.plots.compare import CompareFlights
+from datetime import datetime, timedelta
+
 # =================
 
 # Based on "AFS Rocket V1" in the AFS Mech Drive folder. 
@@ -87,6 +90,7 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
         rocket.add_sensor(sensor)
     return rocket
 
+
 def makeMotor(option):
     '''
     Set up the rocket motor to be simulated
@@ -121,6 +125,7 @@ def makeMotor(option):
     else:
         raise ValueError("Motor option not recognised")
 
+
 def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height):
     '''
     Set up the launch conditions for the flight sim
@@ -137,7 +142,9 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
     )   
     env.set_date(date, timezone)
     #Use the open-elevation API to automatically find elevation
-    env.set_atmospheric_model(type="wyoming_sounding", file="http://weather.uwyo.edu/cgi-bin/sounding?region=samer&TYPE=TEXT%3ALIST&YEAR=2025&MONTH=02&FROM=0200&TO=0200&STNM=72357")
+    env.set_atmospheric_model(
+        type="wyoming_sounding", 
+        file="http://weather.uwyo.edu/cgi-bin/sounding?region=samer&TYPE=TEXT%3ALIST&YEAR=2025&MONTH=02&FROM=0200&TO=0200&STNM=72357")
 
     env.set_elevation("Open-Elevation")
 
@@ -152,7 +159,9 @@ def makeEnvironment(date, timezone, launch_lat, launch_long, max_expected_height
 
 
 
-
+# =======================================================
+# Main Section of Rocket Instantiation Below.
+# =======================================================
 
 
 
@@ -161,7 +170,7 @@ motor_H242T = makeMotor("motor_H242T")
 r1 = makeDefaultRocket(motor_H242T, 4, [])
 
 # CANARD FIN DIMENSIONS DONE 2/13/2026 ====================
-# AFS_V1_Rocket - OpenRocket
+# AFS_V1_Rocket - OpenRocket - To be eventually updated as a controller
 # =========================================================
 
 
@@ -183,14 +192,15 @@ canards = r1.add_trapezoidal_fins(
 
 
 
-# --------------------------------------------------------------
-# --------------------------------------------------------------
+# ==========================================================
+# Flight & Environment Instantiation
+# ==========================================================
 
 # Environment conditions
 env = makeEnvironment((2025, 10, 23, 17), "America/Denver", 40.213476, 9.003336, 1000)
 env.set_elevation(0)
 env.prints.launch_site_details()
-env.add_wind_gust(100, 70)
+env.add_wind_gust(0, 0)
 
 
 
@@ -207,15 +217,50 @@ test_flight = Flight(
 
 )
 
+# test_flight.plots.angular_kinematics_data()
+
+# test_flight.plots.trajectory_3d()
+# test_flight.plots.flight_path_angle_data()
+# test_flight.plots.attitude_data()
 
 
+inclinations = [85, 75]
+headings = [90, 135]
+flights = []
 
-test_flight.plots.angular_kinematics_data()
+# for heading in headings:
+#     for inclination in inclinations:
+#         flight = Flight(
+#             environment=env,
+#             rocket=r1,
+#             rail_length=5.2,
+#             inclination=inclination,
+#             heading=heading,
+#             name=f"Incl {inclination} Head {heading}",
+#         )
+#         flights.append(flight)
+
+canard_angles = [0 , 15, 30, 45, 60, 75]
+
+# print(r1.aerodynamic_surfaces[2])
+
+for angle in canard_angles:
+    canards.cant_angle = angle
+
+    flight = Flight(
+        environment=env,
+        rocket=r1,
+        rail_length=5.2,
+        inclination=85,
+        heading=90,
+        name=f"Angle: {angle}",
+        terminate_on_apogee=True
+    )
+    flights.append(flight)
 
 
+comparisons = CompareFlights(flights)
 
-test_flight.plots.trajectory_3d()
-# # test_flight.plots.flight_path_angle_data()
-test_flight.plots.attitude_data()
+comparisons.trajectories_3d(legend=True)
 
 
