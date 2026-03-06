@@ -1,3 +1,5 @@
+import numpy as np
+
 def add_afs_canards(
     self,
     drag_coefficient_curve,
@@ -93,5 +95,35 @@ def update_canards(canards: TrapezoidalFins, angle: float):
     canards: The canard fin object
     angle: The new angle of the canard fins in degrees
     '''
+
+
+
+
     canards.cant_angle = angle
 
+def pd_angle():
+    applied_roll_torque=0
+    roll_moment_of_inertia=0
+    roll_rate=0
+
+    time_constant=0
+
+    #Changing variables
+    kd=0
+    constant_v_func=0
+
+    dist_com_to_axis=0
+
+    attitude_x=0
+    attitude_y=0
+    attitude_z=0
+
+    rate_x=0
+    rate_y=0
+    rate_z=0
+
+    attitude_vector=np.array([attitude_x], [attitude_y], [attitude_z])
+    rate_vector=np.array([rate_x], [rate_y], [rate_z])
+    #this stuff is in right side of page 5
+    direction_ad_force=np.array([0],[0],[0])
+    pass
