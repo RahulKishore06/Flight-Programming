@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def add_afs_canards(
     self,
@@ -102,28 +103,75 @@ def update_canards(canards: TrapezoidalFins, angle: float):
     canards.cant_angle = angle
 
 def pd_angle():
-    applied_roll_torque=0
-    roll_moment_of_inertia=0
-    roll_rate=0
+    applied_roll_torque = 0
+    roll_moment_of_inertia = 0
+    roll_rate = 0
 
     time_constant=0
 
     #Changing variables
-    kd=0
-    constant_v_func=0
+    kd_phi = 0
+    kd_theta = 0
+    kd_psi = 0
 
-    dist_com_to_axis=0
+    rho = 1 # Input air density functions from environment class 
+    rocket_velocity = 20 # Input current scalar velocity of rocket
+    surf_area = 0.01 # Input from rocket params
+    lift_coe = 2 # Create loop up table
+    vel_coe = 0.5 * rho * math.pow(rocket_velocity, 2) * surf_area * lift_coe
 
-    attitude_x=0
-    attitude_y=0
-    attitude_z=0
+    r = 0
 
-    rate_x=0
-    rate_y=0
-    rate_z=0
+    current_phi=0
+    current_theta=0
+    current_psi=0
 
-    attitude_vector=np.array([attitude_x], [attitude_y], [attitude_z])
-    rate_vector=np.array([rate_x], [rate_y], [rate_z])
-    #this stuff is in right side of page 5
-    direction_ad_force=np.array([0],[0],[0])
+    current_rate_phi=0
+    current_rate_theta=0
+    current_rate_psi=0
+
+    current_attitude_vector=np.array([current_phi], [current_theta], [current_psi])
+    current_rate_vector=np.array([current_rate_phi], [current_rate_theta], [current_rate_psi])
+
+    desired_attitude_vec = np.array([current_phi], [current_theta], [current_psi])
+    desired_rate_vec = np.array([0], [0], [0])
+
+    error_rates_vec = current_rate_vector - desired_rate_vec
+
+    pd_moments = np.array([0],[0],[0]) # collects from pd function; what we're trying to calculate
+
+    coefficient_matrix = np.array([kd_phi, 0, 0],
+                                  [0, kd_theta, 0],
+                                  [0, 0, kd_psi])
+    
+    pd_moments = -coefficient_matrix @ error_rates_vec
+
+
+    big_L = 10 # distance from center of fin on axis to COG
+    big_R = 2 # Radial distance from z axis to COP of canards 
+    control_effectiveness_matrix = np.array([0, -vel_coe * big_L, 0, vel_coe * big_L],
+                                            [-vel_coe * big_L, 0, vel_coe * big_L, 0],
+                                            [big_R * vel_coe, big_R * vel_coe, big_R * vel_coe, big_R * vel_coe])
+    
+    cem_inv = np.linalg.pinv(control_effectiveness_matrix)
+
+    deflections = cem_inv @ pd_moments
+
+
+
+
+    
+
+    
+
+
+
+
+
+
+    
+
+
+
+
     pass
