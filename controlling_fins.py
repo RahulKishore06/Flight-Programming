@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from rocketpy import TrapezoidalFins
 
 def add_afs_canards(
     self,
@@ -56,6 +57,7 @@ def canard_controller_function(
     observed_variables, 
     interactive_objects, 
     sensors,
+    env
 
 ):
     canards = self.aerodynamic_surfaces[2]
@@ -71,21 +73,33 @@ def canard_controller_function(
     # deflection_goal = pd_function(roll_rate)
     # 
 
-    # ADDED STUFF, i commented it out cuz idk if its right (T_T) (Copied from Documentation)-Jonathan
 
-    #vx, vy, vz = state[3], state[4], state[5]
-    #altitude_ASL = state[2]
-    #altitude_AGL = altitude_ASL - env.elevation
-    #wind_x, wind_y = env.wind_velocity_x(altitude_ASL), env.wind_velocity_y(altitude_ASL)
-    #e0, e1, e2, e3 = state[6], state[7], state[8], state[9]
+    #pd_angle needs total velocity,we can maybe use this?
+    vx, vy, vz = state[3], state[4], state[5]
+    total_velocity = math.sqrt(vx**2 + vy**2 + vz**2)
+
+
+    altitude_ASL = state[2]
+    altitude_AGL = altitude_ASL - env.elevation
+    wind_x, wind_y = env.wind_velocity_x(altitude_ASL), env.wind_velocity_y(altitude_ASL)
+    e0, e1, e2, e3 = state[6], state[7], state[8], state[9]
 
     #observed_variables apparently stores anything we return from this function
     #SO we can use this to do smthg idk incase we ever need it - Jonosnon
 
-    #if len(observed_variables) > 0:
-        #some_var = observed_variables[-1][0]
-    #else:
-        #some_var = 0
+    if len(observed_variables) > 0:
+        observed_variables.append()
+    else:
+        some_var = 0
+
+
+
+
+
+    #-----------------
+  
+    canard_deflection = pd_angle(env.density(altitude_AGL), total_velocity, canards.Af, canard_deflection, canards.evaluate_lift_coefficient(self))
+    update_canards(canards, canard_deflection)
 
 
 
@@ -96,13 +110,19 @@ def update_canards(canards: TrapezoidalFins, angle: float):
     canards: The canard fin object
     angle: The new angle of the canard fins in degrees
     '''
+    canards.changing_attribute_dict['cant_angle'] = angle
 
-
-
-
-    canards.cant_angle = angle
-
-def pd_angle():
+def pd_angle(
+        rho, # Input air density functions from environment class
+        rocket_velocity, # Input current scalar velocity of rocket
+        surf_area, # Input from rocket params
+        cur_deflection,
+        lift_c
+    ):
+    '''
+    Calculate the desired canard fin angle based on the current roll rate and a PD controller.
+    Returns the desired angle for the canard fins to achieve the desired roll rate.
+    '''
     applied_roll_torque = 0
     roll_moment_of_inertia = 0
     roll_rate = 0
@@ -114,10 +134,11 @@ def pd_angle():
     kd_theta = 0
     kd_psi = 0
 
-    rho = 1 # Input air density functions from environment class 
-    rocket_velocity = 20 # Input current scalar velocity of rocket
-    surf_area = 0.01 # Input from rocket params
-    lift_coe = 2 # Create loop up table
+
+    
+
+    lift_coe = 2 * math.pi * cur_deflection
+    # lift_coe = lift_c
     vel_coe = 0.5 * rho * math.pow(rocket_velocity, 2) * surf_area * lift_coe
 
     r = 0
@@ -158,20 +179,4 @@ def pd_angle():
     deflections = cem_inv @ pd_moments
 
 
-
-
-    
-
-    
-
-
-
-
-
-
-    
-
-
-
-
-    pass
+    return deflections
