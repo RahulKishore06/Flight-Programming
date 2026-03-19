@@ -1,11 +1,10 @@
 import numpy as np
 import math
-from rocketpy import TrapezoidalFins
+from rocketpy import TrapezoidalFins, Flight, Rocket, _Controller, Function
 
 def add_afs_canards(
     self,
     drag_coefficient_curve,
-    controller_function,
     sampling_rate,
     initial_observed_variables=None,
     override_rocket_drag=False,
@@ -17,14 +16,8 @@ def add_afs_canards(
     drag coefficient curve, controller function, sampling rate, and
     reference area.
 
-    Returns
-    -------
-    air_brakes : AirBrakes
-        AirBrakes object created.
-    controller : Controller
-        Controller object created.
     """
-    canards = self.add_trapezoidal_fins(
+    canards = self.rocket.add_trapezoidal_fins(
         n=4,
         root_chord=0.05,
         tip_chord=0.0254,
@@ -36,7 +29,7 @@ def add_afs_canards(
     )
     _controller = _Controller(
         interactive_objects=canards,
-        controller_function=controller_function,
+        controller_function=canard_controller_function,
         sampling_rate=sampling_rate,
         initial_observed_variables=initial_observed_variables,
         name=controller_name,
@@ -58,7 +51,6 @@ def canard_controller_function(
     interactive_objects, 
     sensors,
     env
-
 ):
     canards = self.aerodynamic_surfaces[2]
 
@@ -69,9 +61,13 @@ def canard_controller_function(
 
     canard_position = canards.cant_angle
     # self.flight.e0[-1][1]
-    roll_rate = self.flight.w1[-1][1]
-    # deflection_goal = pd_function(roll_rate)
-    # 
+    pitch_rate = state[11]
+    yaw_rate = state[12]
+    roll_rate = state[13]
+
+    pitch = state[9]
+    yaw = state[10]
+    roll = state[10]    
 
 
     #pd_angle needs total velocity,we can maybe use this?
@@ -82,27 +78,44 @@ def canard_controller_function(
     altitude_ASL = state[2]
     altitude_AGL = altitude_ASL - env.elevation
     wind_x, wind_y = env.wind_velocity_x(altitude_ASL), env.wind_velocity_y(altitude_ASL)
-    e0, e1, e2, e3 = state[6], state[7], state[8], state[9]
+    # e0, e1, e2, e3 = state[6], state[7], state[8], state[9]
+
+    canard_deflection = pd_angle(
+        env.density(altitude_AGL),total_velocity, canards.Af, 
+        canard_deflection, 
+        self.flight.get_aerodynamic_coefficients(time=time)['Canards'],
+        pitch_rate,
+        roll_rate, 
+        yaw_rate,
+        roll,
+        pitch,
+        yaw
+        )
+    
+    update_canards(canards, canard_deflection)
 
     #observed_variables apparently stores anything we return from this function
     #SO we can use this to do smthg idk incase we ever need it - Jonosnon
 
     if len(observed_variables) > 0:
-        observed_variables.append()
+        observed_variables.append([canard_deflection, time])
     else:
-        some_var = 0
+        observed_variables = [[canard_deflection, time]]
+        print("initial observed variables: ", observed_variables)
 
+r1 = Rocket(
+    radius=0.04015,  # 5.5" diameter circle
+    mass=1.197,
+    inertia=(15.07, 15.07, 0.067),
+    power_off_drag=0.65,
+    power_on_drag=0.65,
+    # power_off_drag=0.1,
+    # power_on_drag=0.1,
+    center_of_mass_without_motor=-.512,
+    coordinate_system_orientation="tail_to_nose",
+)
 
-
-
-
-    #-----------------
-  
-    canard_deflection = pd_angle(env.density(altitude_AGL), total_velocity, canards.Af, canard_deflection, canards.evaluate_lift_coefficient(self))
-    update_canards(canards, canard_deflection)
-
-
-
+print(r1.flight.get_aerodynamic_coefficients(time=5.0)['Canards'])
 
 def update_canards(canards: TrapezoidalFins, angle: float):
     '''
@@ -117,7 +130,14 @@ def pd_angle(
         rocket_velocity, # Input current scalar velocity of rocket
         surf_area, # Input from rocket params
         cur_deflection,
-        lift_c
+        lift_c,
+        roll_rate,
+        pitch_rate,
+        yaw_rate,
+        roll,
+        pitch,
+        yaw
+
     ):
     '''
     Calculate the desired canard fin angle based on the current roll rate and a PD controller.
@@ -135,21 +155,23 @@ def pd_angle(
     kd_psi = 0
 
 
-    
+    if lift_c != None:
+        lift_coe = lift_c
+    else:
+        lift_coe = 2 * math.pi * cur_deflection
 
-    lift_coe = 2 * math.pi * cur_deflection
-    # lift_coe = lift_c
+
     vel_coe = 0.5 * rho * math.pow(rocket_velocity, 2) * surf_area * lift_coe
 
     r = 0
 
-    current_phi=0
-    current_theta=0
-    current_psi=0
+    current_phi=roll
+    current_theta=pitch
+    current_psi=yaw
 
-    current_rate_phi=0
-    current_rate_theta=0
-    current_rate_psi=0
+    current_rate_phi= roll_rate
+    current_rate_theta= pitch_rate
+    current_rate_psi= yaw_rate
 
     current_attitude_vector=np.array([current_phi], [current_theta], [current_psi])
     current_rate_vector=np.array([current_rate_phi], [current_rate_theta], [current_rate_psi])
