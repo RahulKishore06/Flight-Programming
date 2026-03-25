@@ -8,6 +8,7 @@ from rocketpy import Rocket, Flight, Function, TrapezoidalFins, SolidMotor, Moto
 from rocketpy.plots.compare import CompareFlights
 from datetime import datetime, timedelta
 
+from controlling_fins import ActiveCanardsRocket
 # =================
 
 # Based on "AFS Rocket V1" in the AFS Mech Drive folder. 
@@ -26,7 +27,7 @@ def makeDefaultRocket(motor:Motor , numFins: int, sensors: list = []):
     # ROCKET DIMENSIONS DONE 2/12/2026 ====================
     # https://www.thrustcurve.org/motors/AeroTech/H242T/
     # =====================================================
-    rocket = Rocket(
+    rocket = ActiveCanardsRocket(
         radius=0.04015,  # 5.5" diameter circle
         mass=1.197,
         inertia=(15.07, 15.07, 0.067),
@@ -174,17 +175,17 @@ r1 = makeDefaultRocket(motor_H242T, 4, [])
 # =========================================================
 
 
-canards = r1.add_trapezoidal_fins(
-            name="canards",
-            n=4,
-            root_chord=0.05,
-            tip_chord=0.0254,
-            span=0.03,
-            position=-0.382,
-            sweep_length=0.0145,
-            cant_angle=0,
-            airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
-        )
+# canards = r1.add_trapezoidal_fins(
+#             name="canards",
+#             n=4,
+#             root_chord=0.05,
+#             tip_chord=0.0254,
+#             span=0.03,
+#             position=-0.382,
+#             sweep_length=0.0145,
+#             cant_angle=0,
+#             airfoil=(Function([[0, 0.0002], [2, 0.3320], [4, 0.6335], [6, 0.6877]]), "degrees"),
+#         )
 
 
 # r1.info()
@@ -244,23 +245,48 @@ canard_angles = [0 , 15, 30, 45, 60, 75]
 
 # print(r1.aerodynamic_surfaces[2])
 
-for angle in canard_angles:
-    canards.cant_angle = angle
+# for angle in canard_angles:
+#     canards.cant_angle = angle
 
-    flight = Flight(
-        environment=env,
-        rocket=r1,
-        rail_length=5.2,
-        inclination=85,
-        heading=90,
-        name=f"Angle: {angle}",
-        terminate_on_apogee=True
-    )
-    flights.append(flight)
+#     flight = Flight(
+#         environment=env,
+#         rocket=r1,
+#         rail_length=5.2,
+#         inclination=85,
+#         heading=90,
+#         name=f"Angle: {angle}",
+#         terminate_on_apogee=True
+#     )
+#     flights.append(flight)
 
 
-comparisons = CompareFlights(flights)
+# comparisons = CompareFlights(flights)
 
-comparisons.trajectories_3d(legend=True)
+# comparisons.trajectories_3d(legend=True)
 
+canards = r1.add_afs_canards(
+    drag_coefficient_curve="../data/rockets/calisto/air_brakes_cd.csv",
+    sampling_rate=10,
+    initial_observed_variables=None,
+    override_rocket_drag=False,
+    return_controller=False
+)
+
+
+
+
+
+
+
+
+flight = Flight(
+    environment=env,
+    rocket=r1,
+    rail_length=5.2,
+    inclination=85,
+    heading=90,
+    name="With PD Controller",
+    terminate_on_apogee=True
+)
+flights.append(flight)
 
