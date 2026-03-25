@@ -85,7 +85,7 @@
 //   Bit 6: ADDR_AI (1=auto-increment)
 //   Bit 5: BE   (0=Little-Endian, 1=Big-Endian)
 //   Bit 0: SensorDisable (0=clock on)
-#define CTRL1_ADDR_AI      0x40  // Auto-increment ON, Little-Endian, 4-wire SPI
+#define CTRL1_ADDR_AI      0x60  // Auto-increment ON, Little-Endian, 4-wire SPI
 
 // CTRL2: Accel config
 //   Bits [6:4] aFS:  000=±2g, 001=±4g, 010=±8g, 011=±16g
